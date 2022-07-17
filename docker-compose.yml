@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  homomorphicencryptionpoc:
+    image: homomorphicencryptionpoc
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 5007:5007
