@@ -48,8 +48,14 @@ heroku container:push web --app he-poc
 heroku open --app he-poc
 ```
 
-Add Procfile and you're good to go
+Add Procfile and then deploy.
+```
+web: gunicorn --bind 0.0.0.0:$PORT api:app
+```
 
+When you deploy, scale your web.
 ```
-gunicorn --bind 0.0.0.0:5007 api:app
+heroku ps:scale web=1
 ```
+
+Now check the result, should be god to go.
