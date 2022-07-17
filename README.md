@@ -35,3 +35,21 @@ pip freeze > requirements.txt
 ```
 python api.py
 ```
+
+## Heroku
+
+```
+heroku login
+heroku container:login
+
+heroku create he-poc
+heroku container:push web --app he-poc
+
+heroku open --app he-poc
+```
+
+Add Procfile and you're good to go
+
+```
+gunicorn --bind 0.0.0.0:5007 api:app
+```
