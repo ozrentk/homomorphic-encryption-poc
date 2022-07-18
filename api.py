@@ -8,10 +8,18 @@ from Pyfhel import Pyfhel, PyCtxt
 from flask import Flask, request, Response
 from flask_restful import Resource, Api, reqparse
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class State(metaclass=Singleton):
+  HE = None
+
 app = Flask(__name__)
 api = Api(app)
-
-HE = None
 
 todos = {}
 
@@ -33,13 +41,41 @@ class ConfigureCKKS(Resource):
     except Exception as ex:
       print(f"ZIP extract exception: {ex}")
     
-    HE_srv = Pyfhel()
-    HE_srv.from_bytes_context(files['ctx'])
-    HE_srv.from_bytes_public_key(files['pub'])
-    HE_srv.from_bytes_relin_key(files['relin'])
-    HE_srv.from_bytes_rotate_key(files['rotate'])
+    s = State()
+    s.HE = Pyfhel()
+    s.HE.from_bytes_context(files['ctx'])
+    s.HE.from_bytes_public_key(files['pub'])
+    s.HE.from_bytes_relin_key(files['relin'])
+    s.HE.from_bytes_rotate_key(files['rotate'])
 
     return { 'message': 'configured' }
+
+class ComputeAdd(Resource):
+  def post(self):
+    b64_n1 = request.json['n1']
+    b64_n2 = request.json['n2']
+
+    s_n1 = base64.b64decode(b64_n1)
+    s_n2 = base64.b64decode(b64_n2)
+
+    s = State()
+    ctxt1 = PyCtxt(pyfhel=s.HE, bytestring=s_n1)
+    ctxt2 = PyCtxt(pyfhel=s.HE, bytestring=s_n2)
+
+    try:
+      csum = ctxt1 + ctxt2
+      
+      cres = PyCtxt(copy_ctxt=csum)
+      s_cres = cres.to_bytes()
+      b64_cres = base64.b64encode(s_cres).decode()
+
+      return { "message": "calculated", "result": b64_cres }
+
+    except Exception as ex:
+      print(f"Error: {ex}")
+
+
+    return { 'message': 'calculated' }
 
 class Tests(Resource):
   def get(self):
@@ -118,6 +154,7 @@ class TodoSimple(Resource):
 api.add_resource(Intro, '/')
 api.add_resource(Tests, '/tests')
 api.add_resource(ConfigureCKKS, '/configure-ckks')
+api.add_resource(ComputeAdd, '/compute-add')
 api.add_resource(TodoSimple, '/<string:todo_id>')
 
 if __name__ == '__main__':
