@@ -60,8 +60,8 @@ class ComputeAdd(Resource):
 
     s = State()
     print("[pyfhel]", s.HE)
-    print("[s_n1]", s_n1)
-    print("[s_n2]", s_n2)
+    print("[s_n1]", s_n1[:100])
+    print("[s_n2]", s_n2[:100])
     ctxt1 = PyCtxt(pyfhel=s.HE, bytestring=s_n1)
     ctxt2 = PyCtxt(pyfhel=s.HE, bytestring=s_n2)
 
