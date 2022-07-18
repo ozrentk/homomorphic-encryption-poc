@@ -1,13 +1,17 @@
 import base64
+import io
+import zipfile
 
 import numpy as np
 from Pyfhel import Pyfhel, PyCtxt
 
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Resource, Api, reqparse
 
 app = Flask(__name__)
 api = Api(app)
+
+HE = None
 
 todos = {}
 
@@ -15,36 +19,27 @@ class Intro(Resource):
   def get(self):
       return { 'message': "Hi, server here. What would you like today?" }
 
-class Configure(Resource):
+class ConfigureCKKS(Resource):
   def post(self):
-    HE = Pyfhel()
+    bytes = request.files['file'].read()
 
-    HE.contextGen(scheme='ckks', n=2**13, scale = 2**30, qi = [30]*2)
-    HE.keyGen()
-    HE.relinKeyGen()
-    HE.rotateKeyGen()
+    files = {}
+    try:
+      with zipfile.ZipFile(io.BytesIO(bytes)) as thezip:
+        for zipinfo in thezip.infolist():
+          with thezip.open(zipinfo) as thefile:
+            files[zipinfo.filename] = thefile.read()
 
-    s_context = HE.to_bytes_context()
-    s_public_key = HE.to_bytes_public_key()
-    s_relin_key = HE.to_bytes_relin_key()
-    s_rotate_key = HE.to_bytes_rotate_key()
+    except Exception as ex:
+      print(f"ZIP extract exception: {ex}")
+    
+    HE_srv = Pyfhel()
+    HE_srv.from_bytes_context(files['ctx'])
+    HE_srv.from_bytes_public_key(files['pub'])
+    HE_srv.from_bytes_relin_key(files['relin'])
+    HE_srv.from_bytes_rotate_key(files['rotate'])
 
-    x1 = s_context.decode('cp437')
-    x2 = s_public_key.decode('cp437')
-    x3 = s_relin_key.decode('cp437')
-    x4 = s_rotate_key.decode('cp437')
-
-    s_context_b64 = base64.b64encode(s_context)
-    s_public_key_b64 = base64.b64encode(s_public_key)
-    s_relin_key_b64 = base64.b64encode(s_relin_key)
-    s_rotate_key_b64 = base64.b64encode(s_rotate_key)
-
-    # print(s_context_b64)
-    # print(s_public_key_b64)
-    # print(s_relin_key_b64)
-    # print(s_rotate_key_b64)
-
-    return { "ctx": len(x1), "pub": len(x2), "relin": len(x3), "rotate": len(x4) }
+    return { 'message': 'configured' }
 
 class Tests(Resource):
   def get(self):
@@ -122,7 +117,7 @@ class TodoSimple(Resource):
 
 api.add_resource(Intro, '/')
 api.add_resource(Tests, '/tests')
-api.add_resource(Configure, '/configure')
+api.add_resource(ConfigureCKKS, '/configure-ckks')
 api.add_resource(TodoSimple, '/<string:todo_id>')
 
 if __name__ == '__main__':
