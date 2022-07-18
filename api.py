@@ -59,6 +59,9 @@ class ComputeAdd(Resource):
     s_n2 = base64.b64decode(b64_n2)
 
     s = State()
+    print("[pyfhel]", s.HE)
+    print("[s_n1]", s_n1)
+    print("[s_n2]", s_n2)
     ctxt1 = PyCtxt(pyfhel=s.HE, bytestring=s_n1)
     ctxt2 = PyCtxt(pyfhel=s.HE, bytestring=s_n2)
 
