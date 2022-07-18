@@ -1,6 +1,6 @@
-# REPO: homomorphic-encryption-poc
+# MONOREPO: Homomorphic Encryption POC (server)
 
-POC for homomorphic encryption REST app
+POC server for homomorphic encryption - REST app
 
 ## Startup
 

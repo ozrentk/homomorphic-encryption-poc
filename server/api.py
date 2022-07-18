@@ -13,7 +13,7 @@ todos = {}
 
 class Intro(Resource):
   def get(self):
-      return "Hi, server here. What would you like today?"
+      return { 'message': "Hi, server here. What would you like today?" }
 
 class Configure(Resource):
   def post(self):
