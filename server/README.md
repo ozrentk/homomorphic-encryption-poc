@@ -10,7 +10,7 @@ POC for homomorphic encryption REST app
 
 ```
 python3 -m venv venv
-source ../venv/bin/activate
+. ../venv/bin/activate
 ```
 
 ## Git
@@ -59,3 +59,10 @@ heroku ps:scale web=1
 ```
 
 Now check the result, should be god to go.
+
+Oh, btw, logs:
+```
+heroku logs --tail
+```
+
+Cheers!
