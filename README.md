@@ -1,4 +1,4 @@
-# MONOREPO: Homomorphic Encryption POC (server)
+# Homomorphic Encryption POC (server)
 
 POC server for homomorphic encryption - REST app
 
